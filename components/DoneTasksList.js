@@ -11,6 +11,7 @@ export default DoneTasksList = props => {
           <TaskItem
             text={itemData.item.text}
             id={itemData.item.id}
+            onMoveItem={props.onMoveItem}
             onDeleteItem={props.onDeleteItem}
             done={true}
           />

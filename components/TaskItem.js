@@ -1,4 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
 export default TaskItem = props => {
   return (
@@ -10,8 +17,9 @@ export default TaskItem = props => {
     >
       <Pressable
         android_ripple={{ color: '#210644' }}
-        onPress={props.onDeleteItem.bind(this, props.id)}
+        onPress={props.onMoveItem.bind(this, props.id)}
         onLongPress={() => props.onEditItem && props.onEditItem(props.id)}
+        style={styles.pressable}
       >
         <Text
           style={[
@@ -22,17 +30,37 @@ export default TaskItem = props => {
           {props.text}
         </Text>
       </Pressable>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => props.onDeleteItem && props.onDeleteItem(props.id)}
+      >
+        <Ionicons name='trash' size={20} color={'white'} />
+      </TouchableOpacity>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   taskItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    justifyContent: 'center',
     margin: 8,
     borderRadius: 6,
+    paddingLeft: 8,
   },
   taskText: {
     color: 'white',
     padding: 8,
+  },
+  pressable: {
+    flex: 1,
+  },
+  deleteButton: {
+    marginLeft: 8,
+    backgroundColor: '#f31282',
+    borderRadius: 4,
+    padding: 4,
+    justifyContent: 'center',
   },
 })

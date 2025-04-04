@@ -119,13 +119,30 @@ export default function App() {
         throw new Error('Error al agregar la tarea')
       }
       const data = await response.json()
-      setTasks(currentTasks => [
-        ...currentTasks,
-        { id: data._id, text: enteredTaskText },
-      ])
+      setTasks(currentTasks =>
+        sortTasksByText([
+          ...currentTasks,
+          { id: data._id, text: enteredTaskText },
+        ])
+      )
     } catch (error) {
       console.log('ERROR:', error)
       Alert.alert('Error', 'No se pudo agregar la tarea')
+    }
+  }
+
+  async function deleteTask(id) {
+    try {
+      const response = await fetch(API_URL + '/tasks/' + id, {
+        method: 'DELETE',
+      })
+      if (!response.ok) {
+        throw new Error('Error al eliminar la tarea')
+      }
+      setTasks(currentTasks => currentTasks.filter(task => task.id !== id))
+    } catch (error) {
+      console.log('ERROR:', error)
+      Alert.alert('Error', 'No se pudo eliminar la tarea')
     }
   }
 
@@ -171,6 +188,19 @@ export default function App() {
     modifyTask(taskToDelete.id, false)
   }
 
+  function deleteTaskHandler(id) {
+    const taskToDelete = tasks.find(g => g.id === id)
+    if (!taskToDelete) return
+
+    deleteTask(id)
+  }
+
+  function deleteDoneTaskHandler(id) {
+    const taskToDelete = doneTasks.find(g => g.id === id)
+    console.log('Delete task:', taskToDelete.text)
+    // if (!taskToDelete) return
+  }
+
   function sortTasksByText(list) {
     return list.sort((a, b) => a.text.localeCompare(b.text))
   }
@@ -200,13 +230,15 @@ export default function App() {
                 <TasksList
                   tasks={tasks}
                   onEditItem={startEditTaskHandler}
-                  onDeleteItem={markTaskAsDoneHandler}
+                  onMoveItem={markTaskAsDoneHandler}
+                  onDeleteItem={deleteTaskHandler}
                 />
               }
               ListFooterComponent={
                 <DoneTasksList
                   doneTasks={doneTasks}
-                  onDeleteItem={markTaskAsNotDoneHandler}
+                  onMoveItem={markTaskAsNotDoneHandler}
+                  onDeleteItem={deleteDoneTaskHandler}
                 />
               }
               data={[]}
