@@ -133,25 +133,31 @@ export default function App() {
       <StatusBar style='dark' />
       <View style={styles.appContainer}>
         <Text style={styles.appTitle}>🛠️ Tareas de Casa 🏠</Text>
-        <TaskInput
-          onAddTask={addTaskHandler}
-          visible={modalIsVisible}
-          onCancel={endAddTaskHandler}
-        />
-        <FlatList
-          ListHeaderComponent={
-            <TasksList tasks={tasks} onDeleteItem={markTaskAsDoneHandler} />
-          }
-          ListFooterComponent={
-            <DoneTasksList
-              doneTasks={doneTasks}
-              onDeleteItem={markTaskAsNotDoneHandler}
+        {loading ? (
+          <Text style={styles.loadingText}>Cargando tareas ...</Text>
+        ) : (
+          <>
+            <TaskInput
+              onAddTask={addTaskHandler}
+              visible={modalIsVisible}
+              onCancel={endAddTaskHandler}
             />
-          }
-          data={[]}
-          renderItem={null}
-          keyExtractor={() => Math.random().toString()} // To avoid warnings
-        />
+            <FlatList
+              ListHeaderComponent={
+                <TasksList tasks={tasks} onDeleteItem={markTaskAsDoneHandler} />
+              }
+              ListFooterComponent={
+                <DoneTasksList
+                  doneTasks={doneTasks}
+                  onDeleteItem={markTaskAsNotDoneHandler}
+                />
+              }
+              data={[]}
+              renderItem={null}
+              keyExtractor={() => Math.random().toString()} // To avoid warnings
+            />
+          </>
+        )}
       </View>
       <Pressable style={styles.addButton} onPress={startAddTaskHandler}>
         <Text style={styles.addButtonText}>+</Text>
@@ -192,5 +198,10 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 32,
     fontWeight: 'bold',
+  },
+  loadingText: {
+    fontSize: 30,
+    textAlign: 'center',
+    marginTop: 20,
   },
 })
