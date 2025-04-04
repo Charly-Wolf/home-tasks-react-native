@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar'
 import TaskInput from './components/TaskInput'
 import TasksList from './components/TasksList'
 import DoneTasksList from './components/DoneTasksList'
+import EditTask from './components/EditTask'
 
 // API_URL = process.env.API_URL
 API_URL = 'https://clumsy-elane-karl-697-6bfe43c7.koyeb.app'
@@ -13,7 +14,9 @@ export default function App() {
   const [tasks, setTasks] = useState([])
   const [doneTasks, setDoneTasks] = useState([])
   const [loading, setLoading] = useState(true)
-  const [modalIsVisible, setModalIsVisible] = useState(false)
+  const [addTaskModalIsVisible, setAddTaskModalIsVisible] = useState(false)
+  const [editTaskModalIsVisible, setEditTaskModalIsVisible] = useState(false)
+  const [taskToEdit, setTaskToEdit] = useState(null)
 
   useEffect(() => {
     fetchTasks()
@@ -31,8 +34,8 @@ export default function App() {
       const completedTasks = data
         .filter(task => task.done)
         .map(task => ({ id: task._id, text: task.text }))
-      setTasks(activeTasks)
-      setDoneTasks(completedTasks)
+      setTasks(sortTasksByText(activeTasks))
+      setDoneTasks(sortTasksByText(completedTasks))
     } catch (error) {
       console.log('ERROR:', error)
       Alert.alert('Error', 'No se pudieron cargar las tareas')
@@ -41,11 +44,16 @@ export default function App() {
     }
   }
 
-  async function modifyTask(id, done) {
+  async function modifyTask(id, done = null, text = null) {
+    let body
+
+    if (done != null) body = { done }
+    if (text != null) body = { text }
+
     try {
       const response = await fetch(API_URL + '/tasks/' + id, {
         method: 'PUT',
-        body: JSON.stringify({ done }),
+        body: JSON.stringify(body),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -54,18 +62,38 @@ export default function App() {
         throw new Error('Error al modificar la tarea')
       }
 
-      setTasks(prevTasks => prevTasks.filter(task => task.id !== id))
-      setDoneTasks(prevDoneTasks =>
-        prevDoneTasks.filter(task => task.id !== id)
-      )
+      if (done !== null) {
+        if (done) {
+          setTasks(prevTasks => prevTasks.filter(task => task.id !== id))
+          const movedTask = tasks.find(task => task.id === id)
+          if (movedTask) {
+            setDoneTasks(prevDoneTasks =>
+              sortTasksByText([...prevDoneTasks, { ...movedTask, done }])
+            )
+          }
+        } else {
+          setDoneTasks(prevDoneTasks =>
+            sortTasksByText(prevDoneTasks.filter(task => task.id !== id))
+          )
+          const movedTask = doneTasks.find(task => task.id === id)
+          if (movedTask) {
+            setTasks(prevTasks =>
+              sortTasksByText([...prevTasks, { ...movedTask, done: false }])
+            )
+          }
+        }
+      }
 
-      if (done) {
-        const movedTask = tasks.find(task => task.id === id)
-        if (movedTask) setDoneTasks(prev => [...prev, { ...movedTask, done }])
-      } else {
-        const movedTask = doneTasks.find(task => task.id === id)
-        if (movedTask)
-          setTasks(prev => [...prev, { ...movedTask, done: false }])
+      if (text) {
+        setTasks(prevTasks => {
+          const updatedTasks = prevTasks.map(task =>
+            task.id === id ? { ...task, ...body } : task
+          )
+          return updatedTasks
+        })
+
+        setEditTaskModalIsVisible(false)
+        setTaskToEdit(null)
       }
     } catch (error) {
       console.log('ERROR:', error)
@@ -102,11 +130,26 @@ export default function App() {
   }
 
   function startAddTaskHandler() {
-    setModalIsVisible(true)
+    setAddTaskModalIsVisible(true)
   }
 
   function endAddTaskHandler() {
-    setModalIsVisible(false)
+    setAddTaskModalIsVisible(false)
+  }
+
+  function startEditTaskHandler(id) {
+    const task =
+      tasks.find(t => t.id === id) || doneTasks.find(t => t.id === id)
+
+    if (!task) return
+
+    setTaskToEdit(task)
+    setEditTaskModalIsVisible(true)
+  }
+
+  function endEditTaskHandler() {
+    setEditTaskModalIsVisible(false)
+    setTaskToEdit(null)
   }
 
   function addTaskHandler(enteredTaskText) {
@@ -128,6 +171,10 @@ export default function App() {
     modifyTask(taskToDelete.id, false)
   }
 
+  function sortTasksByText(list) {
+    return list.sort((a, b) => a.text.localeCompare(b.text))
+  }
+
   return (
     <>
       <StatusBar style='dark' />
@@ -139,12 +186,22 @@ export default function App() {
           <>
             <TaskInput
               onAddTask={addTaskHandler}
-              visible={modalIsVisible}
+              visible={addTaskModalIsVisible}
               onCancel={endAddTaskHandler}
+            />
+            <EditTask
+              visible={editTaskModalIsVisible}
+              task={taskToEdit}
+              onCancel={endEditTaskHandler}
+              onSaveTask={modifyTask}
             />
             <FlatList
               ListHeaderComponent={
-                <TasksList tasks={tasks} onDeleteItem={markTaskAsDoneHandler} />
+                <TasksList
+                  tasks={tasks}
+                  onEditItem={startEditTaskHandler}
+                  onDeleteItem={markTaskAsDoneHandler}
+                />
               }
               ListFooterComponent={
                 <DoneTasksList

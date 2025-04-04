@@ -11,6 +11,7 @@ export default TaskItem = props => {
       <Pressable
         android_ripple={{ color: '#210644' }}
         onPress={props.onDeleteItem.bind(this, props.id)}
+        onLongPress={() => props.onEditItem && props.onEditItem(props.id)}
       >
         <Text
           style={[
