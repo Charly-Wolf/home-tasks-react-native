@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Modal, StyleSheet, TextInput, View } from 'react-native'
 
-export default TaskInput = props => {
+export default EditTask = props => {
   const [editedTaskText, setEditedTaskText] = useState('')
 
   useEffect(() => {
@@ -9,10 +9,6 @@ export default TaskInput = props => {
       setEditedTaskText(props.task.text)
     }
   }, [props.task])
-
-  function taskInputHandler(enteredText) {
-    setEditedTaskText(enteredText)
-  }
 
   function saveTaskHandler() {
     props.onSaveTask(props.task.id, null, editedTaskText)

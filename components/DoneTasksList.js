@@ -12,7 +12,7 @@ export default DoneTasksList = props => {
             text={itemData.item.text}
             id={itemData.item.id}
             onMoveItem={props.onMoveItem}
-            onDeleteItem={props.onDeleteItem}
+            onOpenDeleteModal={props.onOpenDeleteModal}
             done={true}
           />
         )}

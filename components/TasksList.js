@@ -14,7 +14,7 @@ export default TasksList = props => {
             id={itemData.item.id}
             onMoveItem={props.onMoveItem}
             onEditItem={props.onEditItem}
-            onDeleteItem={props.onDeleteItem}
+            onOpenDeleteModal={props.onOpenDeleteModal}
           />
         )}
       />

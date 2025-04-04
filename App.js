@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react'
 import { StyleSheet, View, Text, Pressable, FlatList } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 
-import TaskInput from './components/TaskInput'
+import TaskInput from './components/modals/TaskInput'
 import TasksList from './components/TasksList'
 import DoneTasksList from './components/DoneTasksList'
-import EditTask from './components/EditTask'
+import EditTask from './components/modals/EditTask'
+import DeleteTask from './components/modals/DeleteTask'
 
 // API_URL = process.env.API_URL
 API_URL = 'https://clumsy-elane-karl-697-6bfe43c7.koyeb.app'
@@ -16,7 +17,10 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [addTaskModalIsVisible, setAddTaskModalIsVisible] = useState(false)
   const [editTaskModalIsVisible, setEditTaskModalIsVisible] = useState(false)
+  const [deleteTaskModalIsVisible, setDeleteTaskModalIsVisible] =
+    useState(false)
   const [taskToEdit, setTaskToEdit] = useState(null)
+  const [taskToDeleteId, setTaskToDeleteId] = useState(null)
 
   useEffect(() => {
     fetchTasks()
@@ -164,6 +168,19 @@ export default function App() {
     setEditTaskModalIsVisible(true)
   }
 
+  function startDeleteTaskHandler(id) {
+    const task =
+      tasks.find(t => t.id === id) || doneTasks.find(t => t.id === id)
+    if (!task) return
+    setTaskToDeleteId(task.id)
+    setDeleteTaskModalIsVisible(true)
+  }
+
+  function endDeleteTaskHandler() {
+    setDeleteTaskModalIsVisible(false)
+    setTaskToDeleteId(null)
+  }
+
   function endEditTaskHandler() {
     setEditTaskModalIsVisible(false)
     setTaskToEdit(null)
@@ -190,15 +207,19 @@ export default function App() {
 
   function deleteTaskHandler(id) {
     const taskToDelete = tasks.find(g => g.id === id)
+
+    console.log('Id', id)
+    console.log('Delete task:', taskToDelete.text)
+
     if (!taskToDelete) return
 
     deleteTask(id)
+    endDeleteTaskHandler()
   }
 
   function deleteDoneTaskHandler(id) {
     const taskToDelete = doneTasks.find(g => g.id === id)
     console.log('Delete task:', taskToDelete.text)
-    // if (!taskToDelete) return
   }
 
   function sortTasksByText(list) {
@@ -225,20 +246,26 @@ export default function App() {
               onCancel={endEditTaskHandler}
               onSaveTask={modifyTask}
             />
+            <DeleteTask
+              id={taskToDeleteId}
+              visible={deleteTaskModalIsVisible}
+              onCancel={endDeleteTaskHandler}
+              onDeleteTask={deleteTaskHandler}
+            />
             <FlatList
               ListHeaderComponent={
                 <TasksList
                   tasks={tasks}
                   onEditItem={startEditTaskHandler}
                   onMoveItem={markTaskAsDoneHandler}
-                  onDeleteItem={deleteTaskHandler}
+                  onOpenDeleteModal={startDeleteTaskHandler}
                 />
               }
               ListFooterComponent={
                 <DoneTasksList
                   doneTasks={doneTasks}
                   onMoveItem={markTaskAsNotDoneHandler}
-                  onDeleteItem={deleteDoneTaskHandler}
+                  onOpenDeleteModal={startDeleteTaskHandler}
                 />
               }
               data={[]}

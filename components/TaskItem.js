@@ -32,7 +32,9 @@ export default TaskItem = props => {
       </Pressable>
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => props.onDeleteItem && props.onDeleteItem(props.id)}
+        onPress={() =>
+          props.onOpenDeleteModal && props.onOpenDeleteModal(props.id)
+        }
       >
         <Ionicons name='trash' size={20} color={'white'} />
       </TouchableOpacity>
