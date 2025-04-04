@@ -1,11 +1,10 @@
 {
   "expo": {
-    "name": "0-RNCourse",
+    "name": "Home Tasks",
     "slug": "0-RNCourse",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -13,16 +12,34 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "runtimeVersion": {
+        "policy": "appVersion"
+      },
+      "bundleIdentifier": "com.carda.hometasks",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.carda.hometasks",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "839a2104-0682-465c-9cb8-3dc90fe1b433"
+      }
+    },
+    "owner": "charlywolf",
+    "updates": {
+      "url": "https://u.expo.dev/839a2104-0682-465c-9cb8-3dc90fe1b433"
     }
   }
 }
