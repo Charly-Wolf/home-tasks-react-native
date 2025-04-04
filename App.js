@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { StyleSheet, View, Text, Pressable, FlatList } from 'react-native'
+import {
+  StyleSheet,
+  View,
+  Text,
+  Pressable,
+  FlatList,
+  TextInput,
+  Alert,
+} from 'react-native'
+import * as LocalAuthentication from 'expo-local-authentication'
 import { StatusBar } from 'expo-status-bar'
 
 import TaskInput from './components/modals/TaskInput'
@@ -12,6 +21,8 @@ import DeleteTask from './components/modals/DeleteTask'
 API_URL = 'https://clumsy-elane-karl-697-6bfe43c7.koyeb.app'
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState('')
   const [tasks, setTasks] = useState([])
   const [doneTasks, setDoneTasks] = useState([])
   const [loading, setLoading] = useState(true)
@@ -23,8 +34,10 @@ export default function App() {
   const [taskToDeleteId, setTaskToDeleteId] = useState(null)
 
   useEffect(() => {
-    fetchTasks()
-  }, [])
+    if (isAuthenticated) {
+      fetchTasks()
+    }
+  }, [isAuthenticated])
 
   async function fetchTasks() {
     try {
@@ -45,6 +58,39 @@ export default function App() {
       Alert.alert('Error', 'No se pudieron cargar las tareas')
     } finally {
       setLoading(false)
+    }
+  }
+
+  function handleLogin() {
+    if (password === 'Bali') {
+      authenticateWithBiometrics()
+    } else {
+      Alert.alert('Error', 'Contraseña incorrecta')
+    }
+  }
+
+  async function authenticateWithBiometrics() {
+    const hasHardware = await LocalAuthentication.hasHardwareAsync()
+    if (!hasHardware) {
+      Alert.alert('Error', 'El dispositivo no admite autenticación biométrica')
+      return
+    }
+
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync()
+    if (!isEnrolled) {
+      Alert.alert('Error', 'No hay huellas digitales registradas')
+      return
+    }
+
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Autenticación biométrica requerida',
+      fallbackLabel: 'Usar contraseña',
+    })
+
+    if (result.success) {
+      setIsAuthenticated(true)
+    } else {
+      Alert.alert('Error', 'Autenticación biométrica fallida')
     }
   }
 
@@ -217,13 +263,31 @@ export default function App() {
     endDeleteTaskHandler()
   }
 
-  function deleteDoneTaskHandler(id) {
-    const taskToDelete = doneTasks.find(g => g.id === id)
-    console.log('Delete task:', taskToDelete.text)
-  }
+  // function deleteDoneTaskHandler(id) {
+  //   const taskToDelete = doneTasks.find(g => g.id === id)
+  //   console.log('Delete task:', taskToDelete.text)
+  // }
 
   function sortTasksByText(list) {
     return list.sort((a, b) => a.text.localeCompare(b.text))
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <View style={styles.authContainer}>
+        <Text style={styles.authTitle}>Contraseña:</Text>
+        <TextInput
+          style={styles.authInput}
+          placeholder='Contraseña'
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <Pressable style={styles.authButton} onPress={handleLogin}>
+          <Text style={styles.authButtonText}>Go!</Text>
+        </Pressable>
+      </View>
+    )
   }
 
   return (
@@ -283,6 +347,42 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  authContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  authTitle: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  authInput: {
+    width: '80%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+    fontSize: 20,
+  },
+  authButton: {
+    backgroundColor: '#4CAF50',
+    padding: 12,
+    borderRadius: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    width: '80%',
+    alignItems: 'center',
+  },
+  authButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
   appTitle: {
     fontSize: 35,
     fontWeight: 'bold',
